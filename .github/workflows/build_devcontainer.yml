@@ -7,7 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  DEBUG_IMAGE_NAME: ${{ github.repository }}
+  DEPLOY_IMAGE_NAME: beman/devcontainers
 
 permissions:
   packages: write
@@ -17,6 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Update devcontainer
     steps:
+      - name: Compute Tag
+        id: tag
+        run:
+          image_name=${{ env.DEPLOY_IMAGE_NAME }}
+          if [ "${{ github.repository_owner }}" != "beman" ]; then
+              image_name=${{ env.DEBUG_IMAGE_NAME }}
+          fi
+          tag=${{ env.REGISTRY }}/$image_name:gcc-14
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -32,4 +42,4 @@ jobs:
           build-args: |
             gnu_version=14
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:gnu-14
+          tags: ${{ steps.tag.outputs.tag }}
