@@ -18,16 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Update devcontainer
     steps:
-      - name: Compute Tag
-        id: tag
-        run:
+      - name: Compute Image Name
+        id: image_name
+        run: |
           image_name=${{ env.DEPLOY_IMAGE_NAME }}
           if [ "${{ github.repository_owner }}" != "beman" ]; then
               image_name=${{ env.DEBUG_IMAGE_NAME }}
           fi
-          tag=${{ env.REGISTRY }}/$image_name:gnu-14
-          echo "computed tag:$tag"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "computed image name: $image_name"
+          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -43,6 +42,6 @@ jobs:
           build-args: |
             gnu_version=14
           push: true
-          tags: ${{ steps.tag.outputs.tag }}
+          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:gnu-14
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
