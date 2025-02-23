@@ -25,7 +25,8 @@ jobs:
           if [ "${{ github.repository_owner }}" != "beman" ]; then
               image_name=${{ env.DEBUG_IMAGE_NAME }}
           fi
-          tag=${{ env.REGISTRY }}/$image_name:gcc-14
+          tag=${{ env.REGISTRY }}/$image_name:gnu-14
+          echo "computed tag:$tag"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,3 +44,5 @@ jobs:
             gnu_version=14
           push: true
           tags: ${{ steps.tag.outputs.tag }}
+          # https://github.com/docker/build-push-action/issues/894
+          provenance: false
