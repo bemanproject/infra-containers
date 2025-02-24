@@ -8,6 +8,6 @@
 			"enableNonRootDocker": true,
 			"moby": false
 		},
-        "ghcr.io/devcontainers-extra/features/pre-commit:2": {}
+                "ghcr.io/devcontainers-extra/features/pre-commit:2": {}
 	}
 }
