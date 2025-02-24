@@ -1,6 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
-
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 {
 	"name": "beman.infra Docker Devcontainer",
 	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
