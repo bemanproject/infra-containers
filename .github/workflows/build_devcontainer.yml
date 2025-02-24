@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: 2.0 license with LLVM exceptions
+
 name: Publish Beman devcontainers
 
 on:
   push:
+    paths:
+      - "devcontainer/**"
   workflow_dispatch:
 
 env:
