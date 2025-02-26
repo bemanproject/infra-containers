@@ -5,6 +5,7 @@ name: Publish Beman devcontainers
 on:
   push:
     paths:
+      - ".github/workflows/build_devcontainer.yml"
       - "devcontainer/**"
   workflow_dispatch:
 
