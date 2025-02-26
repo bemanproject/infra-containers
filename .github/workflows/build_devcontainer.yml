@@ -19,7 +19,12 @@ permissions:
 jobs:
   build-and-push-devcontainer-image:
     runs-on: ubuntu-latest
-    name: Update devcontainer
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 14
+    name: Update devcontainer gnu-${{ matrix.version }}
     steps:
       - name: Compute Image Name
         id: image_name
@@ -43,8 +48,8 @@ jobs:
         with:
           context: devcontainer
           build-args: |
-            gnu_version=14
+            gnu_version=${{ matrix.version }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:gnu-14
+          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:gnu-${{ matrix.version }}
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
