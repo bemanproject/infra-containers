@@ -24,8 +24,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - version: 14
-    name: Update devcontainer gnu-${{ matrix.version }}
+          - kind: gnu
+            version: 14
+          - kind: llvm
+            version: 19
+    name: Update devcontainer ${{ matrix.kind }}-${{ matrix.version }}
     steps:
       - name: Compute Image Name
         id: image_name
@@ -49,8 +52,9 @@ jobs:
         with:
           context: devcontainer
           build-args: |
-            gnu_version=${{ matrix.version }}
+            compiler_kind=${{ matrix.kind }}
+            compiler_version=${{ matrix.version }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:gnu-${{ matrix.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ matrix.kind }}-${{ matrix.version }}
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
