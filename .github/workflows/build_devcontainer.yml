@@ -25,7 +25,7 @@ jobs:
         id: image_name
         run: |
           image_name=${{ env.DEPLOY_IMAGE_NAME }}
-          if [ "${{ github.repository_owner }}" != "beman" ]; then
+          if [ "${{ github.repository }}/${{ github.ref }}" != "beman/infra/refs/heads/main" ]; then
               image_name=${{ env.DEBUG_IMAGE_NAME }}
           fi
           echo "computed image name: $image_name"
