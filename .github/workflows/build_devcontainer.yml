@@ -28,13 +28,13 @@ jobs:
             version: 14
           - kind: llvm
             version: 19
-    name: Update devcontainer ${{ matrix.kind }}-${{ matrix.version }}
+    name: "devcontainer: ${{ matrix.kind }}-${{ matrix.version }}"
     steps:
       - name: Compute Image Name
         id: image_name
         run: |
           image_name=${{ env.DEPLOY_IMAGE_NAME }}
-          if [ "${{ github.repository }}/${{ github.ref }}" != "beman/infra/refs/heads/main" ]; then
+          if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
               image_name=${{ env.DEBUG_IMAGE_NAME }}
           fi
           echo "computed image name: $image_name"
