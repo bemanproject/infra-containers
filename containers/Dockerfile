@@ -1,6 +1,7 @@
 #  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
+ARG base_image=mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
+FROM ${base_image}
 
 USER vscode
 WORKDIR /tmp

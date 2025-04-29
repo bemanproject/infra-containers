@@ -14,12 +14,14 @@ env:
   DEBUG_IMAGE_NAME: ${{ github.repository }}
   DEPLOY_DEV_IMAGE_NAME: bemanproject/devcontainers
   DEPLOY_TESTING_IMAGE_NAME: bemanproject/devcontainers
+  BASE_IMAGE_DEV: mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
+  BASE_IMAGE_TEST: ubuntu:24.04
 
 permissions:
   packages: write
 
 jobs:
-  devcontainers:
+  containers:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -52,6 +54,14 @@ jobs:
           echo "computed tag: $tag"
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Compute Image base
+        id: image_base
+        run: |
+          if [ "${{ matrix.usage }}" == "dev" ]; then
+            echo "image=${{ env.BASE_IMAGE_DEV }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=${{ env.BASE_IMAGE_TEST }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -65,6 +75,7 @@ jobs:
         with:
           context: containers
           build-args: |
+            base_image=${{ steps.image_base.outputs.image }}
             compiler_kind=${{ matrix.kind }}
             compiler_version=${{ matrix.version }}
           push: true
