@@ -36,7 +36,13 @@ jobs:
           - kind: gnu
             version: 11
           - kind: llvm
+            version: 20
+          - kind: llvm
             version: 19
+          - kind: llvm
+            version: 18
+          - kind: llvm
+            version: 17
         usage: [dev, test]
     name: "${{ matrix.usage }}: ${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
     steps:
