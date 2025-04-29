@@ -13,7 +13,7 @@ env:
   REGISTRY: ghcr.io
   DEBUG_IMAGE_NAME: ${{ github.repository }}
   DEPLOY_DEV_IMAGE_NAME: bemanproject/devcontainers
-  DEPLOY_TESTING_IMAGE_NAME: bemanproject/devcontainers
+  DEPLOY_TESTING_IMAGE_NAME: bemanproject/testing-images
   BASE_IMAGE_DEV: mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
   BASE_IMAGE_TEST: ubuntu:24.04
 
@@ -33,6 +33,9 @@ jobs:
           - kind: llvm
             version: 19
             usage: dev
+          - kind: gnu
+            version: 14
+            usage: test
     name: "${{ matrix.usage }}: ${{ matrix.kind }}-${{ matrix.version }}"
     steps:
       - name: Compute Image Name
@@ -49,9 +52,6 @@ jobs:
             fi
             tag="${{ matrix.kind }}-${{ matrix.version }}"
           fi
-
-          echo "computed image name: $image_name"
-          echo "computed tag: $tag"
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - name: Compute Image base
