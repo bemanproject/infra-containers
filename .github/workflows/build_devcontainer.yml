@@ -6,7 +6,7 @@ on:
   push:
     paths:
       - ".github/workflows/build_devcontainer.yml"
-      - "devcontainer/**"
+      - "containers/**"
   workflow_dispatch:
 
 env:
