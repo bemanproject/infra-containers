@@ -6,8 +6,8 @@ FROM ${base_image}
 # Create the vscode user
 RUN bash <<EOF
     if ! id "vscode" &>/dev/null; then
-        sudo useradd -m -s /bin/bash vscode
-        sudo usermod -aG sudo vscode
+        apt-get update && apt-get install -y sudo adduser
+        useradd -ms /bin/bash -p "" vscode && usermod -aG sudo vscode
     fi
 EOF
 
@@ -31,7 +31,7 @@ ARG compiler_version=14
 COPY install_compiler.sh .
 RUN bash install_compiler.sh ${compiler_kind} ${compiler_version}
 
-# Needed for recent exemplar
+# Common dependency: google-test
 RUN sudo apt-get install -y libgtest-dev
 
 # Pre-commit is beman library's standard linting tool
