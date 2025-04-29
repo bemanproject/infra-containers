@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: 2.0 license with LLVM exceptions
 
-name: Publish Beman devcontainers
+name: Publish Beman Containers
 
 on:
   push:
