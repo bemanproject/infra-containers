@@ -3,6 +3,14 @@
 ARG base_image=mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
 FROM ${base_image}
 
+# Create the vscode user
+RUN bash <<EOF
+    if ! id "vscode" &>/dev/null; then
+        sudo useradd -m -s /bin/bash vscode
+        sudo usermod -aG sudo vscode
+    fi
+EOF
+
 USER vscode
 WORKDIR /tmp
 
