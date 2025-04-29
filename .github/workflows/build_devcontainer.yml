@@ -26,31 +26,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        compilers:
           - kind: gnu
             version: 14
-            usage: dev
           - kind: llvm
             version: 19
-            usage: dev
-          - kind: gnu
-            version: 14
-            usage: test
-    name: "${{ matrix.usage }}: ${{ matrix.kind }}-${{ matrix.version }}"
+        usage: [dev, test]
+    name: "${{ matrix.usage }}: ${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
     steps:
       - name: Compute Image Name
         id: image_name
         run: |
           if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
             image_name="${{ env.DEBUG_IMAGE_NAME }}"
-            tag="${{ matrix.usage }}-${{ matrix.kind }}-${{ matrix.version }}"
+            tag="${{ matrix.usage }}-${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
           else
             if [ "${{ matrix.usage }}" = "dev" ]; then
               image_name="${{ env.DEPLOY_DEV_IMAGE_NAME }}"
             else
               image_name="${{ env.DEPLOY_TESTING_IMAGE_NAME }}"
             fi
-            tag="${{ matrix.kind }}-${{ matrix.version }}"
+            tag="${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
           fi
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -76,8 +72,8 @@ jobs:
           context: containers
           build-args: |
             base_image=${{ steps.image_base.outputs.image }}
-            compiler_kind=${{ matrix.kind }}
-            compiler_version=${{ matrix.version }}
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.version }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ steps.image_name.outputs.tag }}
           # https://github.com/docker/build-push-action/issues/894
