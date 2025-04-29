@@ -28,7 +28,13 @@ jobs:
       matrix:
         compilers:
           - kind: gnu
+            version: 15
+          - kind: gnu
             version: 14
+          - kind: gnu
+            version: 13
+          - kind: gnu
+            version: 12
           - kind: llvm
             version: 19
         usage: [dev, test]
