@@ -12,13 +12,14 @@ on:
 env:
   REGISTRY: ghcr.io
   DEBUG_IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_IMAGE_NAME: beman/devcontainers
+  DEPLOY_DEV_IMAGE_NAME: bemanproject/devcontainers
+  DEPLOY_TESTING_IMAGE_NAME: bemanproject/devcontainers
 
 permissions:
   packages: write
 
 jobs:
-  build-and-push-devcontainer-image:
+  devcontainers:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,19 +27,31 @@ jobs:
         include:
           - kind: gnu
             version: 14
+            usage: dev
           - kind: llvm
             version: 19
-    name: "devcontainer: ${{ matrix.kind }}-${{ matrix.version }}"
+            usage: dev
+    name: "${{ matrix.usage }}: ${{ matrix.kind }}-${{ matrix.version }}"
     steps:
       - name: Compute Image Name
         id: image_name
         run: |
-          image_name=${{ env.DEPLOY_IMAGE_NAME }}
           if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
-              image_name=${{ env.DEBUG_IMAGE_NAME }}
+            image_name="${{ env.DEBUG_IMAGE_NAME }}"
+            tag="${{ matrix.usage }}-${{ matrix.kind }}-${{ matrix.version }}"
+          else
+            if [ "${{ matrix.usage }}" = "dev" ]; then
+              image_name="${{ env.DEPLOY_DEV_IMAGE_NAME }}"
+            else
+              image_name="${{ env.DEPLOY_TESTING_IMAGE_NAME }}"
+            fi
+            tag="${{ matrix.kind }}-${{ matrix.version }}"
           fi
+
           echo "computed image name: $image_name"
+          echo "computed tag: $tag"
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -50,11 +63,11 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: devcontainer
+          context: containers
           build-args: |
             compiler_kind=${{ matrix.kind }}
             compiler_version=${{ matrix.version }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ matrix.kind }}-${{ matrix.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ steps.image_name.outputs.tag }}
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
