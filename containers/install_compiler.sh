@@ -36,4 +36,4 @@ else
 fi
 
 # Install libc++
-sudo apt-get install libc++-dev libc++abi-dev
+sudo apt-get install -y libc++-dev libc++abi-dev
