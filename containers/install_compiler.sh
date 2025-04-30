@@ -34,3 +34,6 @@ else
 
     clang --version
 fi
+
+# Install libc++
+sudo apt-get install libc++-dev libc++abi-dev
