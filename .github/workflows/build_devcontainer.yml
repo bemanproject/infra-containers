@@ -12,7 +12,7 @@ on:
 env:
   REGISTRY: ghcr.io
   DEBUG_IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_IMAGE_NAME: beman/devcontainers
+  DEPLOY_IMAGE_NAME: bemanproject/devcontainers
 
 permissions:
   packages: write
