@@ -14,17 +14,8 @@ EOF
 USER vscode
 WORKDIR /tmp
 
-# Install basic utilities, CMake and Ninja.
-# Latest CMake needed for most of the beman libraries,
-# so we need to install via kitware's apt repo
-RUN bash <<EOF
-    sudo apt-get install -y ca-certificates gpg wget git
-    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
-    sudo apt-get update && sudo apt-get install -y cmake
-
-    sudo apt-get install -y ninja-build
-EOF
+COPY install_sys.sh .
+RUN bash install_sys.sh
 
 # Newer gcc/ llvm is needed to avoid ASAN Stalling, which is turned on by default across beman projects.
 # See: https://github.com/google/sanitizers/issues/1614
