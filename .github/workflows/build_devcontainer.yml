@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: 2.0 license with LLVM exceptions
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 name: Publish Beman devcontainers
 
