@@ -15,9 +15,11 @@ if [ "$TOOL" = "gnu" ]; then
 
     sudo rm -f /usr/bin/gcc
     sudo rm -f /usr/bin/g++
+    sudo rm -f /usr/bin/gcov
 
     sudo ln -s "$(which gcc-"$VERSION")" /usr/bin/gcc
     sudo ln -s "$(which g++-"$VERSION")" /usr/bin/g++
+    sudo ln -s "$(which gcov-"$VERSION")" /usr/bin/gcov
 
     gcc --version
 else
