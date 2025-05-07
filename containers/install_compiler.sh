@@ -8,6 +8,9 @@ VERSION=$2
 
 echo "Install ${TOOL} at: ${VERSION}"
 
+# Install coverage tools
+sudo apt-get install -y lcov
+
 shopt -s nocasematch
 if [ "$TOOL" = "gnu" ]; then
     sudo apt-get remove -y gcc-"$VERSION" g++-"$VERSION" gcc g++
