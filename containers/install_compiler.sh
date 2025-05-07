@@ -8,13 +8,10 @@ VERSION=$2
 
 echo "Install ${TOOL} at: ${VERSION}"
 
-# Install coverage tools
-sudo apt-get install -y lcov
-
 shopt -s nocasematch
 if [ "$TOOL" = "gnu" ]; then
     sudo apt-get remove -y gcc-"$VERSION" g++-"$VERSION" gcc g++
-    sudo apt-get install -y gcc-"$VERSION" g++-"$VERSION"
+    sudo apt-get install -y gcc-"$VERSION" g++-"$VERSION" lcov
 
     sudo rm -f /usr/bin/gcc
     sudo rm -f /usr/bin/g++
@@ -29,7 +26,7 @@ else
     wget https://apt.llvm.org/llvm.sh
 
     sudo bash llvm.sh "${VERSION}"
-    sudo apt-get install -y libc++-"$VERSION"-dev
+    sudo apt-get install -y libc++-"$VERSION"-dev lcov
 
     sudo rm -f /usr/bin/clang
     sudo rm -f /usr/bin/clang++
