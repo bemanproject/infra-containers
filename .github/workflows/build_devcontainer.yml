@@ -36,6 +36,8 @@ jobs:
           - kind: gnu
             version: 11
           - kind: llvm
+            version: 21
+          - kind: llvm
             version: 20
           - kind: llvm
             version: 19
