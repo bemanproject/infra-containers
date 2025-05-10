@@ -23,7 +23,7 @@ if [ "$TOOL" = "gcc" ]; then
 
     gcc --version
 else
-    sudo apt-get install -y lsb-release wget software-properties-common gccpg
+    sudo apt-get install -y lsb-release wget software-properties-common gnupg
     wget https://apt.llvm.org/llvm.sh
 
     sudo bash llvm.sh "${VERSION}"
