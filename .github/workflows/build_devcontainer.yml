@@ -11,9 +11,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  DEBUG_IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_DEV_IMAGE_NAME: bemanproject/devcontainers
-  DEPLOY_TESTING_IMAGE_NAME: bemanproject/testing-images
+  DEBUG_NAME: ${{ github.repository }}
+  DEPLOY_DEV_NAME_PREFIX: bemanproject/devcontainers
+  DEPLOY_TESTING_NAME_PREFIX: bemanproject/testingcontainers
   BASE_IMAGE_DEV: mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
   BASE_IMAGE_TEST: ubuntu:24.04
 
@@ -52,16 +52,19 @@ jobs:
         id: image_name
         run: |
           if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
-            image_name="${{ env.DEBUG_IMAGE_NAME }}"
+            image_name="${{ env.DEBUG_NAME }}"
             tag="${{ matrix.usage }}-${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
           else
             if [ "${{ matrix.usage }}" = "dev" ]; then
-              image_name="${{ env.DEPLOY_DEV_IMAGE_NAME }}"
+              image_name="${{ env.DEPLOY_DEV_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
             else
-              image_name="${{ env.DEPLOY_TESTING_IMAGE_NAME }}"
+              image_name="${{ env.DEPLOY_TESTING_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
             fi
-            tag="${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
+            tag="${{ matrix.compilers.version }}"
           fi
+
+          echo "Image Name: $image_name, Tag: $tag"
+
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - name: Compute Image base
