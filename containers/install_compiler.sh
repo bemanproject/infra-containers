@@ -9,7 +9,7 @@ VERSION=$2
 echo "Install ${TOOL} at: ${VERSION}"
 
 shopt -s nocasematch
-if [ "$TOOL" = "gnu" ]; then
+if [ "$TOOL" = "gcc" ]; then
     sudo apt-get remove -y gcc-"$VERSION" g++-"$VERSION" gcc g++
     sudo apt-get install -y gcc-"$VERSION" g++-"$VERSION" lcov
 
@@ -23,7 +23,7 @@ if [ "$TOOL" = "gnu" ]; then
 
     gcc --version
 else
-    sudo apt-get install -y lsb-release wget software-properties-common gnupg
+    sudo apt-get install -y lsb-release wget software-properties-common gccpg
     wget https://apt.llvm.org/llvm.sh
 
     sudo bash llvm.sh "${VERSION}"

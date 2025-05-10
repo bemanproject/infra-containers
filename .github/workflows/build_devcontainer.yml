@@ -27,23 +27,23 @@ jobs:
       fail-fast: false
       matrix:
         compilers:
-          - kind: gnu
+          - kind: gcc
             version: 14
-          - kind: gnu
+          - kind: gcc
             version: 13
-          - kind: gnu
+          - kind: gcc
             version: 12
-          - kind: gnu
+          - kind: gcc
             version: 11
-          - kind: llvm
+          - kind: clang
             version: 21
-          - kind: llvm
+          - kind: clang
             version: 20
-          - kind: llvm
+          - kind: clang
             version: 19
-          - kind: llvm
+          - kind: clang
             version: 18
-          - kind: llvm
+          - kind: clang
             version: 17
         usage: [dev, test]
     name: "${{ matrix.usage }}: ${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
