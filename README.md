@@ -25,7 +25,7 @@ for Ubuntu 24.04.
 // SPDX-License-Identifier: 2.0 license with LLVM exceptions
 {
     "name": "Beman Generic Devcontainer",
-    "image": "ghcr.io/bemanproject/devcontainers:gcc-14",
+    "image": "ghcr.io/bemanproject/devcontainers-gcc:14",
     "postCreateCommand": "pre-commit",
     "customizations": {
         "vscode": {
