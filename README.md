@@ -1,6 +1,6 @@
 # Containers
 
-<!-- SPDX-License-Identifier: 2.0 license with LLVM exceptions -->
+<!-- SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception -->
 
 This folder contains the infrastructure for Beman project's
 generic container images. You can checkout available images in beman's
@@ -22,7 +22,7 @@ for Ubuntu 24.04.
 ### Example devcontainer setup
 
 ```json
-// SPDX-License-Identifier: 2.0 license with LLVM exceptions
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 {
     "name": "Beman Generic Devcontainer",
     "image": "ghcr.io/bemanproject/devcontainers-gcc:14",
