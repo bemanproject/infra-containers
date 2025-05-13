@@ -1,44 +1,80 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-name: Publish Beman devcontainers
+name: Publish Beman Containers
 
 on:
   push:
     paths:
       - ".github/workflows/build_devcontainer.yml"
-      - "devcontainer/**"
+      - "containers/**"
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  DEBUG_IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_IMAGE_NAME: bemanproject/devcontainers
+  DEBUG_NAME: ${{ github.repository }}
+  DEPLOY_DEV_NAME_PREFIX: bemanproject/devcontainers
+  DEPLOY_TESTING_NAME_PREFIX: bemanproject/testingcontainers
+  BASE_IMAGE_DEV: mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
+  BASE_IMAGE_TEST: ubuntu:24.04
 
 permissions:
   packages: write
 
 jobs:
-  build-and-push-devcontainer-image:
+  containers:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - kind: gnu
+        compilers:
+          - kind: gcc
             version: 14
-          - kind: llvm
+          - kind: gcc
+            version: 13
+          - kind: gcc
+            version: 12
+          - kind: gcc
+            version: 11
+          - kind: clang
+            version: 21
+          - kind: clang
+            version: 20
+          - kind: clang
             version: 19
-    name: "devcontainer: ${{ matrix.kind }}-${{ matrix.version }}"
+          - kind: clang
+            version: 18
+          - kind: clang
+            version: 17
+        usage: [dev, test]
+    name: "${{ matrix.usage }}: ${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
     steps:
       - name: Compute Image Name
         id: image_name
         run: |
-          image_name=${{ env.DEPLOY_IMAGE_NAME }}
           if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
-              image_name=${{ env.DEBUG_IMAGE_NAME }}
+            image_name="${{ env.DEBUG_NAME }}"
+            tag="${{ matrix.usage }}-${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
+          else
+            if [ "${{ matrix.usage }}" = "dev" ]; then
+              image_name="${{ env.DEPLOY_DEV_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
+            else
+              image_name="${{ env.DEPLOY_TESTING_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
+            fi
+            tag="${{ matrix.compilers.version }}"
           fi
-          echo "computed image name: $image_name"
+
+          echo "Image Name: $image_name, Tag: $tag"
+
           echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Compute Image base
+        id: image_base
+        run: |
+          if [ "${{ matrix.usage }}" == "dev" ]; then
+            echo "image=${{ env.BASE_IMAGE_DEV }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=${{ env.BASE_IMAGE_TEST }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -50,11 +86,12 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: devcontainer
+          context: containers
           build-args: |
-            compiler_kind=${{ matrix.kind }}
-            compiler_version=${{ matrix.version }}
+            base_image=${{ steps.image_base.outputs.image }}
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.version }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ matrix.kind }}-${{ matrix.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.image_name }}:${{ steps.image_name.outputs.tag }}
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
