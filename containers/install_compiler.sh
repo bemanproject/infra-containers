@@ -27,7 +27,7 @@ else
     wget https://apt.llvm.org/llvm.sh
 
     sudo bash llvm.sh "${VERSION}"
-    sudo apt-get install -y libc++-"$VERSION"-dev lcov
+    sudo apt-get install -y libc++-"$VERSION"-dev clang-tools-"$VERSION" lcov
 
     sudo rm -f /usr/bin/clang
     sudo rm -f /usr/bin/clang++
@@ -37,4 +37,3 @@ else
 
     clang --version
 fi
-
