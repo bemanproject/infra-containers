@@ -12,7 +12,6 @@ These images includes:
 - Latest compiler based on build args (gcc or clang) installed from the universe repository
 - [pre-commit](https://pre-commit.com/), the standard linter manager across Beman
 
-
 ## Devcontainer
 
 The image is build on top of GitHub's
