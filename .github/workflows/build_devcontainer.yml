@@ -51,7 +51,7 @@ jobs:
       - name: Compute Image Name
         id: image_name
         run: |
-          if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/infra/refs/heads/main" ]; then
+          if [ "${{ github.repository }}/${{ github.ref }}" != "bemanproject/containers/refs/heads/main" ]; then
             image_name="${{ env.DEBUG_NAME }}"
             tag="${{ matrix.usage }}-${{ matrix.compilers.kind }}-${{ matrix.compilers.version }}"
           else
