@@ -1,46 +1,64 @@
-# Containers
+# Beman Container Infrastructure
 
-<!-- SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception -->
+<!--
+SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+-->
 
-This folder contains the infrastructure for Beman project's
-generic container images. You can checkout available images in beman's
-[GitHub Packages page](https://github.com/orgs/bemanproject/packages).
+This repository contains the infrastructure for the Beman project's Docker images. See the
+organization's [GitHub Packages page](https://github.com/orgs/bemanproject/packages) for
+more information.
 
-These images includes:
+## Images
 
-- The latest CMake from kitware's apt repository
-- Latest compiler based on build args (gcc or clang) installed from the universe repository
-- [pre-commit](https://pre-commit.com/), the standard linter manager across Beman
+This project builds the following images intended for use by CI for Beman libraries:
 
-## Devcontainer
+- `ghcr.io/bemanproject/infra-containers-gcc`
+  - `trunk` (rebuilt weekly)
+  - `latest`/`15`/`15.1.0`
+  - `14`/`14.3.0`
+  - `13`/`13.4.0`
+  - `12`/`12.4.0`
+  - `11`/`11.5.0`
+- `ghcr.io/bemanproject/infra-containers-clang`
+  - `trunk` (rebuilt weekly)
+  - `latest`/`20`/`20.1.7`
+  - `19`/`19.1.7`
+  - `18`/`18.1.6`
+  - `17`/`17.0.6`
+- `ghcr.io/bemanproject/infra-containers-clang-p2996`
+  - `latest`/`trunk` (rebuilt weekly)
 
-The image is build on top of GitHub's
-[C++ devcontainer image](https://github.com/devcontainers/images/tree/main/src/cpp)
-for Ubuntu 24.04.
+It also builds the following images intended for use by Docker codespaces:
 
-### Example devcontainer setup
+- `ghcr.io/bemanproject/infra-containers-devcontainer-gcc`
+  - `latest`/`14`
+- `ghcr.io/bemanproject/infra-containers-devcontainer-clang`
+  - `latest`/`20`
 
-```json
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-{
-    "name": "Beman Generic Devcontainer",
-    "image": "ghcr.io/bemanproject/devcontainers-gcc:14",
-    "postCreateCommand": "pre-commit",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-vscode.cpptools",
-                "ms-vscode.cmake-tools"
-            ]
-        }
-    }
-}
-```
+Along with the compiler version specified in the tag, these images contain CMake 4.0.3 and
+recent versions of ninja and git.
 
-### Building your own image
+## Implementation Details
 
-You can build your own Beman devcontainer image with:
+The CI images are based on Gentoo Linux for the following reasons:
 
-```bash
-docker build devcontainer/
-```
+- Its package repository has fast turnaround of new compiler and tool versions, allowing
+  us to ensure we can always provide up-to-date versions
+- It provides binary caching of packages, improving image build times relative to needing
+  to build everything from source
+- It gives us an easy way to build compiler forks from source, such as Bloomberg's fork of
+  clang that adds support for reflection, by editing ebuild files
+  
+The devcontainer images are currently based on Ubuntu so that we can use images from
+microsoft/devcontainers as a base.
+
+## Adding Packages
+
+If these images are missing a tool that you need, either:
+
+- Submit a pull request adding an `emerge` command to `Dockerfile.test` and
+  `Dockerfile.fromsource` with the Gentoo package for that tool (preferred), or:
+- Install the tool inline in the CI job:
+  - `emerge-webrsync` to restore the package data that the image build process removes to
+    save space
+  - `emerge <your-package-name>` to install the tool itself.
