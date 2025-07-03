@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+name: Publish Beman Devcontainers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile.devcontainer"
+      - ".github/workflows/devcontainer_ci.yml"
+  pull_request:
+    paths:
+      - "Dockerfile.devcontainer"
+      - ".github/workflows/devcontainer_ci.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  DEBUG_NAME: ${{ github.repository }}-devcontainer-staging
+  DEPLOY_NAME_PREFIX: ${{ github.repository }}-devcontainer
+
+permissions:
+  packages: write
+
+jobs:
+  containers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compilers:
+          - kind: gcc
+            compiler-version: 14
+            tags: [14, latest]
+          - kind: clang
+            compiler-version: 20
+            tags: [20, latest]
+    name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute Image Name
+        id: image_name
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            image_name="${{ env.DEBUG_NAME }}"
+            tags="${{ env.REGISTRY }}/${image_name}:${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-${{ github.event.number }}"
+          else
+            image_name="${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
+            tags=""
+            for tag in ${{ join(matrix.compilers.tags, ' ') }} ; do
+              tags+=${{ env.REGISTRY }}/${image_name}:${tag},
+            done
+            tags=${tags%,}
+          fi
+
+          echo "Image Name: $image_name, Tags: $tags"
+
+          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.compiler-version }}
+          file: Dockerfile.devcontainer
+          push: true
+          tags: ${{ steps.image_name.outputs.tags }}
+          # https://github.com/docker/build-push-action/issues/894
+          provenance: false

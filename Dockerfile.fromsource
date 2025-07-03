@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+FROM gentoo/stage3:amd64-nomultilib-openrc
+ARG compiler_kind=clang-p2996
+ARG compiler_version=21.0.0.9999
+ARG stdlib_version=${compiler_version}
+RUN /bin/bash <<-EOF
+    set -eux
+    echo 'BINPKG_FORMAT="gpkg"' >> /etc/portage/make.conf
+    echo 'FEATURES="getbinpkg"' >> /etc/portage/make.conf
+    emerge-webrsync
+    getuto
+    emerge dev-vcs/git
+    mkdir -p /etc/portage/repos.conf
+
+    if [[ ${compiler_kind} == clang-p2996 ]] ; then
+      cat > /etc/portage/repos.conf/gentoo.conf <<- REPO_CONF
+[gentoo]
+location = /var/db/repos/gentoo
+sync-type = git
+sync-uri = https://github.com/bemanproject/container-infra-clang-p2996-gentoo.git
+auto-sync = yes
+sync-openpgp-key-refresh = no
+REPO_CONF
+      rm -rf /var/db/repos/gentoo
+      emerge --sync
+    fi
+    echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
+    echo "=dev-build/cmake-4.0.3" >> /etc/portage/package.unmask
+    emerge =dev-build/cmake-4.0.3
+    emerge dev-build/ninja
+    emerge dev-vcs/git
+    if [[ ${compiler_kind} == clang* ]] ; then
+      emerge =llvm-core/clang-${compiler_version} --autounmask --autounmask-write || true
+      etc-update --automode -5
+      USE="libcxx" emerge =llvm-core/clang-runtime-${stdlib_version} --autounmask --autounmask-write || true
+      etc-update --automode -5
+      emerge =llvm-core/clang-${compiler_version}
+      USE="libcxx" emerge =llvm-core/clang-runtime-${stdlib_version}
+      ln -sv /usr/lib/llvm/${compiler_version%%.*}/bin/* /usr/local/bin/
+    elif [[ ${compiler_kind} == gcc ]] ; then
+      emerge =sys-devel/gcc-${compiler_version} --autounmask --autounmask-write || true
+      etc-update --automode -5
+      emerge =sys-devel/gcc-${compiler_version}
+      eselect gcc set x86_64-pc-linux-gnu-${compiler_version%%\.*}
+    else
+      exit 1
+    fi
+    rm -rf /var/db/repos/gentoo /var/cache/*
+EOF
