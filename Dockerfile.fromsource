@@ -29,7 +29,7 @@ REPO_CONF
     echo "=dev-build/cmake-4.0.3" >> /etc/portage/package.unmask
     emerge =dev-build/cmake-4.0.3
     emerge dev-build/ninja
-    emerge dev-vcs/git
+    emerge dev-util/gcovr
     if [[ ${compiler_kind} == clang* ]] ; then
       emerge =llvm-core/clang-${compiler_version} --autounmask --autounmask-write || true
       etc-update --automode -5
