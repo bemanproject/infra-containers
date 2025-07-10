@@ -40,8 +40,8 @@ jobs:
             compiler-version: 13.4.0
             tags: [13.4.0, 13]
           - kind: gcc
-            compiler-version: 12.4.0
-            tags: [12.4.0, 12]
+            compiler-version: 12.4.1_p20250704
+            tags: [12.4.1, 12]
           - kind: gcc
             compiler-version: 11.5.0
             tags: [11.5.0, 11]
@@ -53,7 +53,6 @@ jobs:
             tags: [19.1.7, 19]
           - kind: clang
             compiler-version: 18.1.8-r6
-            stdlib-version: 18.1.8
             tags: [18.1.6, 18]
           - kind: clang
             compiler-version: 17.0.6
@@ -93,7 +92,6 @@ jobs:
           build-args: |
             compiler_kind=${{ matrix.compilers.kind }}
             compiler_version=${{ matrix.compilers.compiler-version }}
-            ${{ matrix.compilers.stdlib-version && format('stdlib_version={0}', matrix.compilers.stdlib-version) }}
           file: Dockerfile.test
           push: true
           tags: ${{ steps.image_name.outputs.tags }}

@@ -76,7 +76,6 @@ jobs:
           build-args: |
             compiler_kind=${{ matrix.compilers.kind }}
             compiler_version=${{ matrix.compilers.compiler-version }}
-            ${{ matrix.compilers.stdlib-version && format('stdlib_version={0}', matrix.compilers.stdlib-version) }}
           file: Dockerfile.fromsource
           push: true
           tags: ${{ steps.image_name.outputs.tags }}

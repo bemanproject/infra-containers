@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
 ARG compiler_kind=gcc
 ARG compiler_version=14
 
-RUN bash <<EOF
+RUN bash <<"EOF"
     if ! id "vscode" &>/dev/null; then
         apt-get update && apt-get install -y sudo adduser
         useradd -ms /bin/bash -p "" vscode && usermod -aG sudo vscode
@@ -15,7 +15,7 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
 RUN echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
 RUN apt-get update && apt-get install -y cmake
 
-RUN bash <<EOF
+RUN bash <<"EOF"
   if [[ "$compiler_kind" == gcc ]] ; then
     apt-get install -y gcc-${compiler_version}
     apt-get install -y g++-${compiler_version}
@@ -23,7 +23,7 @@ RUN bash <<EOF
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-"$compiler_version" 10
   elif [[ "$compiler_kind" == clang ]] ; then
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/repository-key.gpg
-    cat > /etc/apt/sources.list.d/llvm-toolchain-noble-${compiler_version}.sources <<EOF2
+    cat > /etc/apt/sources.list.d/llvm-toolchain-noble-${compiler_version}.sources <<"EOF2"
 Types: deb
 URIs: http://apt.llvm.org/noble/
 Suites: llvm-toolchain-noble-${compiler_version}
