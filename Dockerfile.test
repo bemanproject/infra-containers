@@ -3,8 +3,7 @@
 FROM gentoo/stage3:amd64-nomultilib-openrc
 ARG compiler_kind=clang
 ARG compiler_version=20.1.7
-ARG stdlib_version=${compiler_version}
-RUN /bin/bash <<-EOF
+RUN /bin/bash <<"EOF"
     set -eux
     echo 'BINPKG_FORMAT="gpkg"' >> /etc/portage/make.conf
     echo 'FEATURES="getbinpkg"' >> /etc/portage/make.conf
@@ -17,8 +16,22 @@ RUN /bin/bash <<-EOF
     emerge dev-vcs/git
     emerge dev-util/gcovr
     if [[ ${compiler_kind} == clang ]] ; then
-      emerge --getbinpkgonly =llvm-core/clang-${compiler_version}
-      USE="libcxx" emerge =llvm-core/clang-runtime-${stdlib_version}
+      use_params=''
+      case ${compiler_version%%.*} in
+        17)
+          emerge =dev-lang/python-3.12.11
+          use_params=python_single_target_python3_12 ;;
+      esac
+      echo ">llvm-runtimes/openmp-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/llvm-common-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-runtimes/compiler-rt-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-runtimes/compiler-rt-sanitizers-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/llvm-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/llvmgold-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/llvm-toolchain-symlinks-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/clang-common-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-core/clang-runtime-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      USE="libcxx $use_params" emerge =llvm-core/clang-${compiler_version}
       ln -s /usr/lib/llvm/${compiler_version%%.*}/bin/* /usr/local/bin/
     elif [[ ${compiler_kind} == gcc ]] ; then
       emerge --getbinpkgonly =sys-devel/gcc-${compiler_version}
