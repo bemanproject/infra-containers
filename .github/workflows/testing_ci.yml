@@ -31,29 +31,29 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
-            compiler-version: 15.1.0
-            tags: [15.1.0, 15, latest]
+            compiler-version: 15.2.0
+            tags: [15.2.0, 15, latest]
           - kind: gcc
             compiler-version: 14.3.0
             tags: [14.3.0, 14]
           - kind: gcc
-            compiler-version: 13.4.0
-            tags: [13.4.0, 13]
+            compiler-version: 13.4.1_p20250807
+            tags: [13.4.1, 13]
           - kind: gcc
-            compiler-version: 12.4.1_p20250704
-            tags: [12.4.1, 12]
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
           - kind: gcc
             compiler-version: 11.5.0
             tags: [11.5.0, 11]
           - kind: clang
-            compiler-version: 20.1.7
-            tags: [20.1.7, 20, latest]
+            compiler-version: 20.1.8
+            tags: [20.1.8, 20]
           - kind: clang
             compiler-version: 19.1.7
             tags: [19.1.7, 19]
           - kind: clang
             compiler-version: 18.1.8-r6
-            tags: [18.1.6, 18]
+            tags: [18.1.8, 18]
           - kind: clang
             compiler-version: 17.0.6
             tags: [17.0.6, 17]

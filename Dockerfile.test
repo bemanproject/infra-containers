@@ -10,8 +10,8 @@ RUN /bin/bash <<"EOF"
     emerge-webrsync
     getuto
     echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
-    echo "=dev-build/cmake-4.0.3" >> /etc/portage/package.unmask
-    emerge =dev-build/cmake-4.0.3
+    echo "=dev-build/cmake-4.1.1" >> /etc/portage/package.unmask
+    emerge =dev-build/cmake-4.1.1
     emerge dev-build/ninja
     emerge dev-vcs/git
     emerge dev-util/gcovr
@@ -19,7 +19,7 @@ RUN /bin/bash <<"EOF"
       use_params=''
       case ${compiler_version%%.*} in
         17)
-          emerge =dev-lang/python-3.12.11
+          emerge =dev-lang/python-3.12.11_p1
           use_params=python_single_target_python3_12 ;;
       esac
       echo ">llvm-runtimes/openmp-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
