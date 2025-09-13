@@ -14,16 +14,17 @@ This project builds the following images intended for use by CI for Beman librar
 
 - `ghcr.io/bemanproject/infra-containers-gcc`
   - `trunk` (rebuilt weekly)
-  - `latest`/`15`/`15.1.0`
+  - `latest`/`15`/`15.2.0`
   - `14`/`14.3.0`
-  - `13`/`13.4.0`
-  - `12`/`12.4.0`
+  - `13`/`13.4.1`
+  - `12`/`12.5.0`
   - `11`/`11.5.0`
 - `ghcr.io/bemanproject/infra-containers-clang`
   - `trunk` (rebuilt weekly)
-  - `latest`/`20`/`20.1.7`
+  - `latest`/`21`/`21.1.1`
+  - `20`/`20.1.8`
   - `19`/`19.1.7`
-  - `18`/`18.1.6`
+  - `18`/`18.1.8`
   - `17`/`17.0.6`
 - `ghcr.io/bemanproject/infra-containers-clang-p2996`
   - `latest`/`trunk` (rebuilt weekly)
@@ -35,8 +36,9 @@ It also builds the following images intended for use by Docker codespaces:
 - `ghcr.io/bemanproject/infra-containers-devcontainer-clang`
   - `latest`/`20`
 
-Along with the compiler version specified in the tag, these images contain CMake 4.0.3 and
-recent versions of ninja and git.
+Along with the compiler version specified in the tag, these images contain CMake 4.1.1
+(except for the clang-p2996 image, which contains CMake 4.0.3) and recent versions of
+ninja and git.
 
 ## Implementation Details
 
