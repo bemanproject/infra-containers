@@ -3,7 +3,6 @@
 FROM ubuntu:24.04
 
 ARG LLVM_VERSION=19.1.7
-ARG NUM_JOBS=4
 
 # Install build dependencies
 RUN apt-get update && \
@@ -25,12 +24,12 @@ RUN wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_V
     rm llvm-project-${LLVM_VERSION}.src.tar.xz
 
 # Build LLVM/Clang (optimized for build speed)
+ARG NUM_JOBS=4
 WORKDIR /tmp/llvm-project-${LLVM_VERSION}.src
 RUN cmake -S llvm -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DLLVM_ENABLE_PROJECTS="clang" \
-    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" \
     -DLLVM_TARGETS_TO_BUILD="X86" \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
