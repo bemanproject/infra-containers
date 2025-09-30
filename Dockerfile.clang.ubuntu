@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+FROM ubuntu:24.04
+
+ARG LLVM_VERSION=19.1.7
+ARG NUM_JOBS=4
+
+# Install build dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    python3 \
+    python3-pip \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and extract LLVM source
+WORKDIR /tmp
+RUN wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz && \
+    tar -xf llvm-project-${LLVM_VERSION}.src.tar.xz && \
+    rm llvm-project-${LLVM_VERSION}.src.tar.xz
+
+# Build LLVM/Clang (optimized for build speed)
+WORKDIR /tmp/llvm-project-${LLVM_VERSION}.src
+RUN cmake -S llvm -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DLLVM_ENABLE_PROJECTS="clang" \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_ENABLE_ASSERTIONS=OFF \
+    -DLLVM_ENABLE_BACKTRACES=OFF \
+    -DLLVM_OPTIMIZED_TABLEGEN=ON \
+    -DCLANG_ENABLE_ARCMT=OFF \
+    -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
+    && ninja -C build -j${NUM_JOBS} \
+    && ninja -C build install \
+    && rm -rf /tmp/llvm-project-${LLVM_VERSION}.src
+
+# Verify installation
+RUN clang --version && clang++ --version
+
+WORKDIR /workspace
+CMD ["/bin/bash"]
