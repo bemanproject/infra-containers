@@ -1,5 +1,31 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
+# Dockerfile for building LLVM/Clang from source on Ubuntu 24.04
+#
+# This Dockerfile builds a custom Clang compiler tagged with a specific release.
+#
+# The build is setup to minimize build time, thus it disables unnecessary components
+# (tests, examples, docs, static analyzer, etc.) and only targets X86 architecture.
+#
+# Build arguments:
+#   LLVM_VERSION - LLVM version to build
+#   NUM_JOBS     - Number of parallel build jobs (default: 4)
+#
+# Usage:
+#   Build with default settings:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 .
+#
+#   Build with custom parallelism:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 --build-arg NUM_JOBS=6 .
+#
+#   Build different LLVM version:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_VERSION=20.0.0 .
+#
+# The built image includes:
+#   - clang and clang++ compilers at /usr/local
+#
+# TODO: figure out how to get the tarball from nightly/ specific branch
+
 FROM ubuntu:24.04
 
 ARG LLVM_VERSION=19.1.7
@@ -39,9 +65,11 @@ RUN cmake -S llvm -B build -G Ninja \
     -DLLVM_ENABLE_BACKTRACES=OFF \
     -DLLVM_OPTIMIZED_TABLEGEN=ON \
     -DCLANG_ENABLE_ARCMT=OFF \
-    -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
-    && ninja -C build -j${NUM_JOBS} \
-    && ninja -C build install \
+    -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+
+RUN ninja -C build -j${NUM_JOBS}
+
+RUN ninja -C build install \
     && rm -rf /tmp/llvm-project-${LLVM_VERSION}.src
 
 # Verify installation
