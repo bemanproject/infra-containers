@@ -8,27 +8,40 @@
 # (tests, examples, docs, static analyzer, etc.) and only targets X86 architecture.
 #
 # Build arguments:
-#   LLVM_VERSION - LLVM version to build
+#   LLVM_GIT_URL - Git repository URL (default: https://github.com/llvm/llvm-project.git)
+#   LLVM_GIT_REF - Git branch/tag/commit to build from (default: llvmorg-21.1.2)
 #   NUM_JOBS     - Number of parallel build jobs (default: 4)
 #
 # Usage:
-#   Build with default settings:
-#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 .
+#   Build from default release tag (llvm 21.1.2)
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 .
+#
+#   Build from different release tag:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 --build-arg LLVM_GIT_REF=llvmorg-19.1.7 .
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_GIT_REF=llvmorg-20.1.8 .
+#
+#   Build from release branch (tracks latest stable):
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_GIT_REF=release/20.x .
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 --build-arg LLVM_GIT_REF=release/21.x .
+#
+#   Build from main branch (nightly):
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:main --build-arg LLVM_GIT_REF=main .
+#
+#   Build from specific commit:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:custom --build-arg LLVM_GIT_REF=abc123def .
+#
+#   Build from fork or mirror:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:custom \
+#       --build-arg LLVM_GIT_URL=https://github.com/yourfork/llvm-project.git \
+#       --build-arg LLVM_GIT_REF=your-branch .
 #
 #   Build with custom parallelism:
-#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 --build-arg NUM_JOBS=6 .
-#
-#   Build different LLVM version:
-#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_VERSION=20.0.0 .
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 --build-arg NUM_JOBS=8 .
 #
 # The built image includes:
 #   - clang and clang++ compilers at /usr/local
-#
-# TODO: figure out how to get the tarball from nightly/ specific branch
 
 FROM ubuntu:24.04
-
-ARG LLVM_VERSION=19.1.7
 
 # Install build dependencies
 RUN apt-get update && \
@@ -43,20 +56,22 @@ RUN apt-get update && \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and extract LLVM source
+# Clone LLVM source from git
+ARG LLVM_GIT_URL=https://github.com/llvm/llvm-project.git
+ARG LLVM_GIT_REF=llvmorg-21.1.2
+
 WORKDIR /tmp
-RUN wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz && \
-    tar -xf llvm-project-${LLVM_VERSION}.src.tar.xz && \
-    rm llvm-project-${LLVM_VERSION}.src.tar.xz
+RUN echo "Building from $LLVM_GIT_URL @ $LLVM_GIT_REF" && \
+    git clone --depth 1 --branch "$LLVM_GIT_REF" "$LLVM_GIT_URL" llvm-project-src
 
 # Build LLVM/Clang (optimized for build speed)
 ARG NUM_JOBS=4
-WORKDIR /tmp/llvm-project-${LLVM_VERSION}.src
+WORKDIR /tmp/llvm-project-src
 RUN cmake -S llvm -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DLLVM_ENABLE_PROJECTS="clang" \
-    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
     -DLLVM_INCLUDE_EXAMPLES=OFF \
@@ -70,7 +85,7 @@ RUN cmake -S llvm -B build -G Ninja \
 RUN ninja -C build -j${NUM_JOBS}
 
 RUN ninja -C build install \
-    && rm -rf /tmp/llvm-project-${LLVM_VERSION}.src
+    && rm -rf /tmp/llvm-project-src
 
 # Verify installation
 RUN clang --version && clang++ --version
