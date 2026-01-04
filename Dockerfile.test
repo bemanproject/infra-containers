@@ -10,11 +10,12 @@ RUN /bin/bash <<"EOF"
     emerge-webrsync
     getuto
     echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
-    echo "=dev-build/cmake-4.1.1" >> /etc/portage/package.unmask
-    emerge =dev-build/cmake-4.1.1
+    echo "=dev-build/cmake-4.2.1" >> /etc/portage/package.unmask
+    emerge =dev-build/cmake-4.2.1
     emerge dev-build/ninja
     emerge dev-vcs/git
     emerge dev-util/gcovr
+    emerge app-misc/jq
     if [[ ${compiler_kind} == clang ]] ; then
       use_params=''
       case ${compiler_version%%.*} in

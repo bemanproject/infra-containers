@@ -25,24 +25,23 @@ EOF2
       emerge --sync
     fi
     echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
-    if [[ ${compiler_kind} == clang-p2996 ]] ; then
-      echo "=dev-build/cmake-4.0.3" >> /etc/portage/package.unmask
-      emerge =dev-build/cmake-4.0.3
-    else
-      echo "=dev-build/cmake-4.1.1" >> /etc/portage/package.unmask
-      emerge =dev-build/cmake-4.1.1
-    fi
+    echo "=dev-build/cmake-4.2.1" >> /etc/portage/package.unmask
+    emerge =dev-build/cmake-4.2.1
     emerge dev-build/ninja
     emerge dev-util/gcovr
+    emerge app-misc/jq
     if [[ ${compiler_kind} == clang* ]] ; then
-      USE="libcxx" emerge =llvm-core/clang-${compiler_version} --autounmask --autounmask-write || true
-      etc-update --automode -5
-      USE="libcxx" emerge =llvm-core/clang-${compiler_version}
+      export USE="libcxx"
+      if ! emerge =llvm-core/clang-${compiler_version} --autounmask --autounmask-write ; then
+        etc-update --automode -5
+        emerge =llvm-core/clang-${compiler_version}
+      fi
       ln -sv /usr/lib/llvm/${compiler_version%%.*}/bin/* /usr/local/bin/
     elif [[ ${compiler_kind} == gcc ]] ; then
-      emerge =sys-devel/gcc-${compiler_version} --autounmask --autounmask-write || true
-      etc-update --automode -5
-      emerge =sys-devel/gcc-${compiler_version}
+      if ! emerge =sys-devel/gcc-${compiler_version} --autounmask --autounmask-write ; then
+        etc-update --automode -5
+        emerge =sys-devel/gcc-${compiler_version}
+      fi
       eselect gcc set x86_64-pc-linux-gnu-${compiler_version%%\.*}
     else
       exit 1
