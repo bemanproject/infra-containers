@@ -31,10 +31,10 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
-            compiler-version: 15.2.0
+            compiler-version: 15.2.1_p20251122
             tags: [15.2.0, 15, latest]
           - kind: gcc
-            compiler-version: 14.3.0
+            compiler-version: 14.3.1_p20250801
             tags: [14.3.0, 14]
           - kind: gcc
             compiler-version: 13.4.1_p20250807
@@ -49,13 +49,13 @@ jobs:
             compiler-version: 20.1.8
             tags: [20.1.8, 20]
           - kind: clang
-            compiler-version: 19.1.7
+            compiler-version: 19.1.7-r1
             tags: [19.1.7, 19]
           - kind: clang
-            compiler-version: 18.1.8-r6
+            compiler-version: 18.1.8-r7
             tags: [18.1.8, 18]
           - kind: clang
-            compiler-version: 17.0.6
+            compiler-version: 17.0.6-r1
             tags: [17.0.6, 17]
     name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}"
     steps:

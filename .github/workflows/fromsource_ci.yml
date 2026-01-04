@@ -32,15 +32,12 @@ jobs:
       fail-fast: false
       matrix:
         compilers:
-          - kind: clang-p2996
-            compiler-version: 21.0.0.9999
-            tags: [latest, trunk]
           - kind: clang
-            compiler-version: 22.0.0_pre20250910
+            compiler-version: 22.0.0_pre20251223
             tags: [trunk]
           - kind: clang
-            compiler-version: 21.1.1
-            tags: [21.1.1, 21, latest]
+            compiler-version: 21.1.8
+            tags: [21.1.8, 21, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]
