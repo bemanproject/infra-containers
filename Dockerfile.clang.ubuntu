@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+# Dockerfile for building LLVM/Clang from source on Ubuntu 24.04
+#
+# This Dockerfile builds a custom Clang compiler tagged with a specific release.
+#
+# The build is setup to minimize build time, thus it disables unnecessary components
+# (tests, examples, docs, static analyzer, etc.) and only targets X86 architecture.
+#
+# Build arguments:
+#   LLVM_GIT_URL - Git repository URL (default: https://github.com/llvm/llvm-project.git)
+#   LLVM_GIT_REF - Git branch/tag/commit to build from (default: llvmorg-21.1.2)
+#   NUM_JOBS     - Number of parallel build jobs (default: 4)
+#
+# Usage:
+#   Build from default release tag (llvm 21.1.2)
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 .
+#
+#   Build from different release tag:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:19 --build-arg LLVM_GIT_REF=llvmorg-19.1.7 .
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_GIT_REF=llvmorg-20.1.8 .
+#
+#   Build from release branch (tracks latest stable):
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:20 --build-arg LLVM_GIT_REF=release/20.x .
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 --build-arg LLVM_GIT_REF=release/21.x .
+#
+#   Build from main branch (nightly):
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:main --build-arg LLVM_GIT_REF=main .
+#
+#   Build from specific commit:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:custom --build-arg LLVM_GIT_REF=abc123def .
+#
+#   Build from fork or mirror:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:custom \
+#       --build-arg LLVM_GIT_URL=https://github.com/yourfork/llvm-project.git \
+#       --build-arg LLVM_GIT_REF=your-branch .
+#
+#   Build with custom parallelism:
+#     docker build -f Dockerfile.clang.ubuntu -t clang-ubuntu:21 --build-arg NUM_JOBS=8 .
+#
+# The built image includes:
+#   - clang and clang++ compilers at /usr/local
+
+FROM ubuntu:24.04
+
+# Install build dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    python3 \
+    python3-pip \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone LLVM source from git
+ARG LLVM_GIT_URL=https://github.com/llvm/llvm-project.git
+ARG LLVM_GIT_REF=llvmorg-21.1.2
+
+WORKDIR /tmp
+RUN echo "Building from $LLVM_GIT_URL @ $LLVM_GIT_REF" && \
+    git clone --depth 1 --branch "$LLVM_GIT_REF" "$LLVM_GIT_URL" llvm-project-src
+
+# Build LLVM/Clang (optimized for build speed)
+ARG NUM_JOBS=4
+WORKDIR /tmp/llvm-project-src
+RUN cmake -S llvm -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DLLVM_ENABLE_PROJECTS="clang" \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+    -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_ENABLE_ASSERTIONS=OFF \
+    -DLLVM_ENABLE_BACKTRACES=OFF \
+    -DLLVM_OPTIMIZED_TABLEGEN=ON \
+    -DCLANG_ENABLE_ARCMT=OFF \
+    -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+
+RUN ninja -C build -j${NUM_JOBS}
+
+RUN ninja -C build install \
+    && rm -rf /tmp/llvm-project-src
+
+# Configure runtime linker to find libc++ and libunwind
+RUN echo "/usr/local/lib/aarch64-unknown-linux-gnu" > /etc/ld.so.conf.d/libc++.conf && \
+    echo "/usr/local/lib/x86_64-unknown-linux-gnu" >> /etc/ld.so.conf.d/libc++.conf && \
+    ldconfig
+
+# Verify installation
+RUN clang --version && clang++ --version
+
+WORKDIR /workspace
+CMD ["/bin/bash"]

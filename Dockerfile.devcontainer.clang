@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+# Dockerfile for building a development container with custom-built Clang
+#
+# This Dockerfile creates a devcontainer environment with a custom-built Clang compiler
+# from the clang-ubuntu base image, along with development tools and pre-commit hooks.
+#
+# Build arguments:
+#   CLANG_BASE_IMAGE - Base image with custom Clang (default: clang-ubuntu:21)
+#
+# Usage:
+#   Build with default Clang 21:
+#     docker build -f Dockerfile.devcontainer.clang -t devcontainer-clang:21 .
+#
+#   Build with different Clang version:
+#     docker build -f Dockerfile.devcontainer.clang -t devcontainer-clang:20 --build-arg CLANG_BASE_IMAGE=clang-ubuntu:20 .
+
+ARG CLANG_BASE_IMAGE=clang-ubuntu:21
+
+# Stage 1: Build custom Clang (reference to separate build)
+# This stage is just a reference - the actual clang-ubuntu image should be built separately
+# using Dockerfile.clang.ubuntu
+FROM ${CLANG_BASE_IMAGE} AS clang-builder
+
+# Stage 2: Create devcontainer with custom Clang
+FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
+
+# Create vscode user if it doesn't exist
+RUN bash <<"EOF"
+    if ! id "vscode" &>/dev/null; then
+        apt-get update && apt-get install -y sudo adduser
+        useradd -ms /bin/bash -p "" vscode && usermod -aG sudo vscode
+    fi
+EOF
+
+# Install CMake from Kitware's official repository
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+RUN echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+RUN apt-get update && apt-get install -y cmake
+
+# Copy custom-built Clang from the clang-ubuntu image
+COPY --from=clang-builder /usr/local/bin/clang* /usr/local/bin/
+COPY --from=clang-builder /usr/local/lib/clang /usr/local/lib/clang
+COPY --from=clang-builder /usr/local/lib/libclang* /usr/local/lib/
+COPY --from=clang-builder /usr/local/include/clang* /usr/local/include/
+COPY --from=clang-builder /usr/local/share/clang /usr/local/share/clang
+
+# Install standard library headers and development tools
+RUN apt-get update && apt-get install -y \
+    libstdc++-14-dev \
+    build-essential \
+    git \
+    pipx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up alternatives for clang and clang++
+RUN update-alternatives --install /usr/bin/clang clang /usr/local/bin/clang 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/local/bin/clang++ 100
+
+# Switch to vscode user for user-specific setup
+USER vscode
+WORKDIR /tmp
+
+# Pre-commit is beman library's standard linting tool
+RUN pipx install pre-commit
+ENV PATH="/home/vscode/.local/bin:${PATH}"
+
+# Verify installation
+RUN clang --version && clang++ --version
+
+WORKDIR /workspace
+ENTRYPOINT ["/usr/bin/bash"]
