@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+# Dockerfile for building GCC from source on Ubuntu 24.04
+#
+# This Dockerfile builds a custom GCC compiler from source.
+#
+# The build is setup to minimize build time, thus it disables unnecessary components
+# (tests, docs, etc.) and only targets essential languages (C, C++).
+#
+# Build arguments:
+#   GCC_GIT_URL     - Git repository URL (default: https://gcc.gnu.org/git/gcc.git)
+#   GCC_GIT_REF     - Git branch/tag/commit to build from (default: releases/gcc-14.2.0)
+#   NUM_JOBS        - Number of parallel build jobs (default: 4)
+#
+# Usage:
+#   Build from default release tag (GCC 14.2.0)
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:14 .
+#
+#   Build from different release tag:
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:13 --build-arg GCC_GIT_REF=releases/gcc-13.3.0 .
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:14 --build-arg GCC_GIT_REF=releases/gcc-14.2.0 .
+#
+#   Build from release branch (tracks latest stable):
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:13 --build-arg GCC_GIT_REF=releases/gcc-13 .
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:14 --build-arg GCC_GIT_REF=releases/gcc-14 .
+#
+#   Build from master branch (development):
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:master --build-arg GCC_GIT_REF=master .
+#
+#   Build from specific commit:
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:custom --build-arg GCC_GIT_REF=abc123def .
+#
+#   Build from fork or mirror:
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:custom \
+#       --build-arg GCC_GIT_URL=https://github.com/yourfork/gcc.git \
+#       --build-arg GCC_GIT_REF=your-branch .
+#
+#   Build with custom parallelism:
+#     docker build -f Dockerfile.gcc.ubuntu -t gcc-ubuntu:14 --build-arg NUM_JOBS=8 .
+#
+# The built image includes:
+#   - gcc and g++ compilers at /usr/local
+#   - libstdc++ standard library
+
+FROM ubuntu:24.04
+
+# Install build dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
+    git \
+    wget \
+    ca-certificates \
+    libgmp-dev \
+    libmpfr-dev \
+    libmpc-dev \
+    zlib1g-dev \
+    flex \
+    bison \
+    texinfo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone GCC source from git
+ARG GCC_GIT_URL=https://gcc.gnu.org/git/gcc.git
+ARG GCC_GIT_REF=releases/gcc-14.2.0
+
+WORKDIR /tmp
+RUN echo "Building from $GCC_GIT_URL @ $GCC_GIT_REF" && \
+    git clone --depth 1 --branch "$GCC_GIT_REF" "$GCC_GIT_URL" gcc-src
+
+# Build GCC (optimized for build speed)
+ARG NUM_JOBS=4
+WORKDIR /tmp/gcc-build
+
+RUN /tmp/gcc-src/configure \
+    --prefix=/usr/local \
+    --enable-languages=c,c++ \
+    --disable-multilib \
+    --disable-bootstrap \
+    --enable-checking=release \
+    --with-system-zlib \
+    --disable-nls \
+    --disable-libsanitizer \
+    --disable-libvtv \
+    --disable-libquadmath \
+    --disable-libgomp \
+    --disable-libssp \
+    --disable-werror
+
+RUN make -j${NUM_JOBS}
+
+RUN make install-strip \
+    && rm -rf /tmp/gcc-src /tmp/gcc-build
+
+# Verify installation
+RUN gcc --version && g++ --version
+
+# Test that libstdc++ works
+RUN echo '#include <iostream>\nint main() { std::cout << "GCC libstdc++ works" << std::endl; }' > /tmp/test.cpp && \
+    g++ /tmp/test.cpp -o /tmp/test && \
+    /tmp/test && \
+    rm /tmp/test.cpp /tmp/test
+
+WORKDIR /workspace
+CMD ["/bin/bash"]

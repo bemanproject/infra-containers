@@ -71,6 +71,7 @@ RUN cmake -S llvm -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DLLVM_ENABLE_PROJECTS="clang" \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
     -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
     -DLLVM_INCLUDE_BENCHMARKS=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
@@ -86,6 +87,11 @@ RUN ninja -C build -j${NUM_JOBS}
 
 RUN ninja -C build install \
     && rm -rf /tmp/llvm-project-src
+
+# Configure runtime linker to find libc++ and libunwind
+RUN echo "/usr/local/lib/aarch64-unknown-linux-gnu" > /etc/ld.so.conf.d/libc++.conf && \
+    echo "/usr/local/lib/x86_64-unknown-linux-gnu" >> /etc/ld.so.conf.d/libc++.conf && \
+    ldconfig
 
 # Verify installation
 RUN clang --version && clang++ --version
