@@ -33,11 +33,8 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 22.0.0_pre20251223
+            compiler-version: 23.0.0_pre20260214
             tags: [trunk]
-          - kind: clang
-            compiler-version: 21.1.8
-            tags: [21.1.8, 21, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]

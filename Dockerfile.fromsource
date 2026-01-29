@@ -25,8 +25,8 @@ EOF2
       emerge --sync
     fi
     echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
-    echo "=dev-build/cmake-4.2.1" >> /etc/portage/package.unmask
-    emerge =dev-build/cmake-4.2.1
+    echo "=dev-build/cmake-4.2.3" >> /etc/portage/package.unmask
+    emerge =dev-build/cmake-4.2.3
     emerge dev-build/ninja
     emerge dev-util/gcovr
     emerge app-misc/jq
