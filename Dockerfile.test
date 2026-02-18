@@ -40,5 +40,14 @@ RUN /bin/bash <<"EOF"
     else
       exit 1
     fi
+
+    emerge app-arch/zip app-arch/unzip net-misc/curl app-misc/ca-certificates
+    update-ca-certificates
+    git clone --depth 1 https://github.com/microsoft/vcpkg.git /opt/vcpkg
+    /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+    ln -sf /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
+
     rm -rf /var/db/repos/gentoo /var/cache/*
 EOF
+
+ENV VCPKG_ROOT=/opt/vcpkg
