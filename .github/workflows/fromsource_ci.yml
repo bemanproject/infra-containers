@@ -35,6 +35,9 @@ jobs:
           - kind: clang
             compiler-version: 23.0.0_pre20260214
             tags: [trunk]
+          - kind: clang
+            compiler-version: 22.1.0
+            tags: [22.1.0, 22, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]

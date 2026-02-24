@@ -47,7 +47,7 @@ jobs:
             tags: [11.5.0, 11]
           - kind: clang
             compiler-version: 21.1.8
-            tags: [21.1.8, 21, latest]
+            tags: [21.1.8, 21]
           - kind: clang
             compiler-version: 20.1.8
             tags: [20.1.8, 20]
