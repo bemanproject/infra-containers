@@ -26,22 +26,24 @@ permissions:
   packages: write
 
 jobs:
-  containers:
+  build-amd64:
     runs-on: ubuntu-latest
+    env:
+      BASE_IMAGE: gentoo/stage3:amd64-nomultilib-openrc
     strategy:
       fail-fast: false
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 23.0.0_pre20260214
+            compiler-version: 23.0.0_pre20260223
             tags: [trunk]
           - kind: clang
-            compiler-version: 22.1.0
+            compiler-version: 22.1.0-r2
             tags: [22.1.0, 22, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]
-    name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}"
+    name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (amd64)"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,33 +53,223 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Compute Image Name
-        id: image_name
-        run: |
-          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
-            image_name="${{ env.DEBUG_NAME }}"
-            tags="${{ env.REGISTRY }}/${image_name}:${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-${{ github.event.number }}"
-          else
-            image_name="${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
-            tags=""
-            for tag in ${{ join(matrix.compilers.tags, ' ') }} ; do
-              tags+=${{ env.REGISTRY }}/${image_name}:${tag},
-            done
-            tags=${tags%,}
-          fi
-
-          echo "Image Name: $image_name, Tags: $tags"
-
-          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
-          echo "tags=$tags" >> "$GITHUB_OUTPUT"
-      - name: Build and push Docker image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push (staging)
+        if: github.ref != 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
           build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
             compiler_kind=${{ matrix.compilers.kind }}
             compiler_version=${{ matrix.compilers.compiler-version }}
           file: Dockerfile.fromsource
+          platforms: linux/amd64
           push: true
-          tags: ${{ steps.image_name.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.DEBUG_NAME }}:${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-${{ github.run_id }}-amd64
           # https://github.com/docker/build-push-action/issues/894
           provenance: false
+      - name: Build and push by digest (deploy)
+        if: github.ref == 'refs/heads/main'
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.compiler-version }}
+          file: Dockerfile.fromsource
+          platforms: linux/amd64
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }},push-by-digest=true,name-canonical=true,push=true
+          # https://github.com/docker/build-push-action/issues/894
+          provenance: false
+      - name: Export digest
+        if: github.ref == 'refs/heads/main'
+        run: echo "${{ steps.build.outputs.digest }}" > /tmp/digest.txt
+      - name: Upload digest artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-amd64
+          path: /tmp/digest.txt
+          retention-days: 1
+
+  # arm64 binpkgs are not available for GCC 11/12/13 or Clang 17/18/19, so those
+  # are built from source here. The trunk compilers are built from source on both
+  # architectures since no stable binpkg exists for them either.
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    env:
+      BASE_IMAGE: gentoo/stage3:arm64-llvm-openrc
+    strategy:
+      fail-fast: false
+      matrix:
+        compilers:
+          - kind: clang
+            compiler-version: 23.0.0_pre20260223
+            tags: [trunk]
+          - kind: clang
+            compiler-version: 22.1.0-r2
+            tags: [22.1.0, 22, latest]
+          - kind: gcc
+            compiler-version: 16.0.9999
+            tags: [trunk]
+          - kind: gcc
+            compiler-version: 13.4.1_p20250807
+            tags: [13.4.1, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
+          - kind: clang
+            compiler-version: 19.1.7-r1
+            tags: [19.1.7, 19]
+          - kind: clang
+            compiler-version: 18.1.8-r7
+            tags: [18.1.8, 18]
+          - kind: clang
+            compiler-version: 17.0.6-r1
+            tags: [17.0.6, 17]
+    name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (arm64)"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push (staging)
+        if: github.ref != 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.compiler-version }}
+          file: Dockerfile.fromsource
+          platforms: linux/arm64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.DEBUG_NAME }}:${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-${{ github.run_id }}-arm64
+          # https://github.com/docker/build-push-action/issues/894
+          provenance: false
+      - name: Build and push by digest (deploy)
+        if: github.ref == 'refs/heads/main'
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            compiler_kind=${{ matrix.compilers.kind }}
+            compiler_version=${{ matrix.compilers.compiler-version }}
+          file: Dockerfile.fromsource
+          platforms: linux/arm64
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }},push-by-digest=true,name-canonical=true,push=true
+          # https://github.com/docker/build-push-action/issues/894
+          provenance: false
+      - name: Export digest
+        if: github.ref == 'refs/heads/main'
+        run: echo "${{ steps.build.outputs.digest }}" > /tmp/digest.txt
+      - name: Upload digest artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-arm64
+          path: /tmp/digest.txt
+          retention-days: 1
+
+  merge:
+    needs: [build-amd64, build-arm64]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compilers:
+          - kind: clang
+            compiler-version: 23.0.0_pre20260223
+            tags: [trunk]
+          - kind: clang
+            compiler-version: 22.1.0-r2
+            tags: [22.1.0, 22, latest]
+          - kind: gcc
+            compiler-version: 16.0.9999
+            tags: [trunk]
+          - kind: gcc
+            compiler-version: 13.4.1_p20250807
+            tags: [13.4.1, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
+          - kind: clang
+            compiler-version: 19.1.7-r1
+            tags: [19.1.7, 19]
+          - kind: clang
+            compiler-version: 18.1.8-r7
+            tags: [18.1.8, 18]
+          - kind: clang
+            compiler-version: 17.0.6-r1
+            tags: [17.0.6, 17]
+    name: "merge-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}"
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download amd64 digest
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: digest-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-amd64
+          path: /tmp/digests/amd64
+      - name: Download arm64 digest
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: digest-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}-arm64
+          path: /tmp/digests/arm64
+      - name: Create and push multi-arch manifest
+        run: |
+          image_name="${{ env.REGISTRY }}/${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
+
+          tag_args=""
+          first_tag=""
+          for tag in ${{ join(matrix.compilers.tags, ' ') }} ; do
+            tag_args+=" -t ${image_name}:${tag}"
+            [ -z "${first_tag}" ] && first_tag="${tag}"
+          done
+
+          digests=""
+          if [ -f /tmp/digests/amd64/digest.txt ]; then
+            digests+=" ${image_name}@$(cat /tmp/digests/amd64/digest.txt)"
+          else
+            # GCC 11/12/13 and Clang 17/18/19 have no amd64 fromsource build;
+            # fetch the amd64 digest that testing_ci.yml already published.
+            amd64_digest=$(docker manifest inspect "${image_name}:${first_tag}" 2>/dev/null \
+              | jq -r '.manifests[]? | select(.platform.architecture == "amd64") | .digest' || true)
+            [ -n "${amd64_digest}" ] && digests+=" ${image_name}@${amd64_digest}"
+          fi
+          if [ -f /tmp/digests/arm64/digest.txt ]; then
+            digests+=" ${image_name}@$(cat /tmp/digests/arm64/digest.txt)"
+          fi
+
+          if [ -z "${digests}" ]; then
+            echo "No successful builds for this compiler, skipping."
+            exit 0
+          fi
+
+          docker buildx imagetools create \
+            ${tag_args} \
+            ${digests}
