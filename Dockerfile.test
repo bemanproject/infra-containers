@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-FROM gentoo/stage3:amd64-nomultilib-openrc
+ARG BASE_IMAGE=gentoo/stage3:amd64-nomultilib-openrc
+FROM ${BASE_IMAGE}
+
 ARG compiler_kind=clang
 ARG compiler_version=20.1.7
 RUN /bin/bash <<"EOF"
@@ -9,8 +11,15 @@ RUN /bin/bash <<"EOF"
     echo 'FEATURES="getbinpkg"' >> /etc/portage/make.conf
     emerge-webrsync
     getuto
-    echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
+    case $(uname -m) in
+        x86_64)   GENTOO_ARCH=amd64; GCC_TRIPLET=x86_64-pc-linux-gnu ;;
+        aarch64)  GENTOO_ARCH=arm64; GCC_TRIPLET=aarch64-unknown-linux-gnu ;;
+        *)        echo "Unsupported arch: $(uname -m)"; exit 1 ;;
+    esac
+    echo "ACCEPT_KEYWORDS=\"~${GENTOO_ARCH}\"" >> /etc/portage/make.conf
     echo "=dev-build/cmake-4.2.3" >> /etc/portage/package.unmask
+    mkdir -p /etc/portage/package.accept_keywords
+    echo "dev-util/gcovr **" >> /etc/portage/package.accept_keywords/gcovr
     emerge =dev-build/cmake-4.2.3
     emerge dev-build/ninja
     emerge dev-vcs/git
@@ -28,7 +37,9 @@ RUN /bin/bash <<"EOF"
       echo ">llvm-runtimes/compiler-rt-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-runtimes/compiler-rt-sanitizers-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/llvm-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
-      echo ">llvm-core/llvmgold-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
+      if [[ $(uname -m) == x86_64 ]] ; then
+        echo ">llvm-core/llvmgold-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
+      fi
       echo ">llvm-core/llvm-toolchain-symlinks-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/clang-common-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/clang-runtime-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
@@ -36,7 +47,7 @@ RUN /bin/bash <<"EOF"
       ln -s /usr/lib/llvm/${compiler_version%%.*}/bin/* /usr/local/bin/
     elif [[ ${compiler_kind} == gcc ]] ; then
       emerge --getbinpkgonly =sys-devel/gcc-${compiler_version}
-      eselect gcc set x86_64-pc-linux-gnu-${compiler_version%%\.*}
+      eselect gcc set ${GCC_TRIPLET}-${compiler_version%%\.*}
     else
       exit 1
     fi

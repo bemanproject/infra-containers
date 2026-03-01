@@ -1,16 +1,23 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-FROM gentoo/stage3:amd64-nomultilib-openrc
+ARG BASE_IMAGE=gentoo/stage3:amd64-nomultilib-openrc
+FROM ${BASE_IMAGE}
+
 ARG compiler_kind=clang-p2996
 ARG compiler_version=21.0.0.9999
 RUN /bin/bash <<"EOF"
     set -eux
     echo 'BINPKG_FORMAT="gpkg"' >> /etc/portage/make.conf
     echo 'FEATURES="getbinpkg"' >> /etc/portage/make.conf
-    emerge --sync
+    emerge-webrsync
     getuto
     emerge dev-vcs/git
     mkdir -p /etc/portage/repos.conf
+    case $(uname -m) in
+        x86_64)   GENTOO_ARCH=amd64; GCC_TRIPLET=x86_64-pc-linux-gnu ;;
+        aarch64)  GENTOO_ARCH=arm64; GCC_TRIPLET=aarch64-unknown-linux-gnu ;;
+        *)        echo "Unsupported arch: $(uname -m)"; exit 1 ;;
+    esac
 
     if [[ ${compiler_kind} == clang-p2996 ]] ; then
       cat > /etc/portage/repos.conf/gentoo.conf <<"EOF2"
@@ -24,8 +31,10 @@ EOF2
       rm -rf /var/db/repos/gentoo
       emerge --sync
     fi
-    echo 'ACCEPT_KEYWORDS="~amd64"' >> /etc/portage/make.conf
+    echo "ACCEPT_KEYWORDS=\"~${GENTOO_ARCH}\"" >> /etc/portage/make.conf
     echo "=dev-build/cmake-4.2.3" >> /etc/portage/package.unmask
+    mkdir -p /etc/portage/package.accept_keywords
+    echo "dev-util/gcovr **" >> /etc/portage/package.accept_keywords/gcovr
     emerge =dev-build/cmake-4.2.3
     emerge dev-build/ninja
     emerge dev-util/gcovr
@@ -55,7 +64,7 @@ EOF2
         etc-update --automode -5
         emerge =sys-devel/gcc-${compiler_version}
       fi
-      eselect gcc set x86_64-pc-linux-gnu-${compiler_version%%\.*}
+      eselect gcc set ${GCC_TRIPLET}-${compiler_version%%\.*}
     else
       exit 1
     fi
