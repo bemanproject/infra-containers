@@ -46,8 +46,8 @@ The CI images are based on Gentoo Linux for the following reasons:
   us to ensure we can always provide up-to-date versions
 - It provides binary caching of packages, improving image build times relative to needing
   to build everything from source
-- It gives us an easy way to build compiler forks from source, such as Bloomberg's fork of
-  clang that adds support for reflection, by editing ebuild files
+- It gives us an pathway to start building compiler forks from source by editing ebuild
+  files
   
 The devcontainer images are currently based on Ubuntu so that we can use images from
 microsoft/devcontainers as a base.
