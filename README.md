@@ -28,13 +28,6 @@ This project builds the following images intended for use by CI for Beman librar
   - `18`/`18.1.8`
   - `17`/`17.0.6`
 
-It also builds the following images intended for use by Docker codespaces:
-
-- `ghcr.io/bemanproject/infra-containers-devcontainer-gcc`
-  - `latest`/`14`
-- `ghcr.io/bemanproject/infra-containers-devcontainer-clang`
-  - `latest`/`20`
-
 Along with the compiler version specified in the tag, these images contain CMake 4.2.1 and
 recent versions of ninja, git, and jq.
 
@@ -48,9 +41,6 @@ The CI images are based on Gentoo Linux for the following reasons:
   to build everything from source
 - It gives us an pathway to start building compiler forks from source by editing ebuild
   files
-  
-The devcontainer images are currently based on Ubuntu so that we can use images from
-microsoft/devcontainers as a base.
 
 ## Adding Packages
 
