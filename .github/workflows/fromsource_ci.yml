@@ -35,11 +35,11 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 23.0.0_pre20260314
+            compiler-version: 23.0.0_pre20260321
             tags: [trunk]
           - kind: clang
-            compiler-version: 22.1.1
-            tags: [22.1.1, 22, latest]
+            compiler-version: 22.1.2
+            tags: [22.1.2, 22, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]
@@ -106,13 +106,13 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 22.1.1
-            tags: [22.1.1, 22, latest]
+            compiler-version: 22.1.2
+            tags: [22.1.2, 22, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]
           - kind: gcc
-            compiler-version: 13.4.1_p20250807
+            compiler-version: 13.4.1_p20260212
             tags: [13.4.1, 13]
           - kind: gcc
             compiler-version: 12.5.0
@@ -183,16 +183,16 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 23.0.0_pre20260314
+            compiler-version: 23.0.0_pre20260321
             tags: [trunk]
           - kind: clang
-            compiler-version: 22.1.1
-            tags: [22.1.1, 22, latest]
+            compiler-version: 22.1.2
+            tags: [22.1.2, 22, latest]
           - kind: gcc
             compiler-version: 16.0.9999
             tags: [trunk]
           - kind: gcc
-            compiler-version: 13.4.1_p20250807
+            compiler-version: 13.4.1_p20260212
             tags: [13.4.1, 13]
           - kind: gcc
             compiler-version: 12.5.0
