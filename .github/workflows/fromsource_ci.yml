@@ -41,8 +41,11 @@ jobs:
             compiler-version: 22.1.4
             tags: [22.1.4, 22, latest]
           - kind: gcc
-            compiler-version: 16.0.9999
+            compiler-version: 17.0.9999
             tags: [trunk]
+          - kind: gcc
+            compiler-version: 16.1.0
+            tags: [16.1.0, 16, latest]
     name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (amd64)"
     steps:
       - name: Checkout repository
@@ -109,8 +112,11 @@ jobs:
             compiler-version: 22.1.4
             tags: [22.1.4, 22, latest]
           - kind: gcc
-            compiler-version: 16.0.9999
+            compiler-version: 17.0.9999
             tags: [trunk]
+          - kind: gcc
+            compiler-version: 16.1.0
+            tags: [16.1.0, 16, latest]
           - kind: gcc
             compiler-version: 13.4.1_p20260212
             tags: [13.4.1, 13]
@@ -189,8 +195,11 @@ jobs:
             compiler-version: 22.1.4
             tags: [22.1.4, 22, latest]
           - kind: gcc
-            compiler-version: 16.0.9999
+            compiler-version: 17.0.9999
             tags: [trunk]
+          - kind: gcc
+            compiler-version: 16.1.0
+            tags: [16.1.0, 16, latest]
           - kind: gcc
             compiler-version: 13.4.1_p20260212
             tags: [13.4.1, 13]

@@ -17,10 +17,10 @@ RUN /bin/bash <<"EOF"
         *)        echo "Unsupported arch: $(uname -m)"; exit 1 ;;
     esac
     echo "ACCEPT_KEYWORDS=\"~${GENTOO_ARCH}\"" >> /etc/portage/make.conf
-    echo "=dev-build/cmake-4.3.1" >> /etc/portage/package.unmask
+    echo "=dev-build/cmake-4.3.2" >> /etc/portage/package.unmask
     mkdir -p /etc/portage/package.accept_keywords
     echo "dev-util/gcovr **" >> /etc/portage/package.accept_keywords/gcovr
-    emerge =dev-build/cmake-4.3.1
+    emerge =dev-build/cmake-4.3.2
     emerge dev-build/ninja
     emerge dev-vcs/git
     emerge dev-util/gcovr
