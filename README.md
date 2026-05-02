@@ -14,14 +14,15 @@ This project builds the following images intended for use by CI for Beman librar
 
 - `ghcr.io/bemanproject/infra-containers-gcc`
   - `trunk` (rebuilt weekly)
-  - `latest`/`15`/`15.2.0`
-  - `14`/`14.3.0`
+  - `latest`/`16`/`16.1.0`
+  - `15`/`15.2.1`
+  - `14`/`14.3.1`
   - `13`/`13.4.1`
   - `12`/`12.5.0`
   - `11`/`11.5.0`
 - `ghcr.io/bemanproject/infra-containers-clang`
   - `trunk` (rebuilt weekly)
-  - `latest`/`22`/`22.1.0`
+  - `latest`/`22`/`22.1.4`
   - `21`/`21.1.8`
   - `20`/`20.1.8`
   - `19`/`19.1.7`
