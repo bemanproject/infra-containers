@@ -22,7 +22,7 @@ This project builds the following images intended for use by CI for Beman librar
   - `11`/`11.5.0`
 - `ghcr.io/bemanproject/infra-containers-clang`
   - `trunk` (rebuilt weekly)
-  - `latest`/`22`/`22.1.4`
+  - `latest`/`22`/`22.1.6`
   - `21`/`21.1.8`
   - `20`/`20.1.8`
   - `19`/`19.1.7`
