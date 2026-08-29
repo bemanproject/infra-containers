@@ -9,7 +9,7 @@ RUN /bin/bash <<"EOF"
     set -eux
     echo 'BINPKG_FORMAT="gpkg"' >> /etc/portage/make.conf
     echo 'FEATURES="getbinpkg"' >> /etc/portage/make.conf
-    emerge-webrsync
+    emerge --sync
     getuto
     case $(uname -m) in
         x86_64)   GENTOO_ARCH=amd64; GCC_TRIPLET=x86_64-pc-linux-gnu ;;
@@ -17,10 +17,10 @@ RUN /bin/bash <<"EOF"
         *)        echo "Unsupported arch: $(uname -m)"; exit 1 ;;
     esac
     echo "ACCEPT_KEYWORDS=\"~${GENTOO_ARCH}\"" >> /etc/portage/make.conf
-    echo "=dev-build/cmake-4.3.3" >> /etc/portage/package.unmask
+    echo "=dev-build/cmake-4.3.4" >> /etc/portage/package.unmask
     mkdir -p /etc/portage/package.accept_keywords
     echo "dev-util/gcovr **" >> /etc/portage/package.accept_keywords/gcovr
-    emerge =dev-build/cmake-4.3.3
+    emerge =dev-build/cmake-4.3.4
     emerge dev-build/ninja
     emerge dev-vcs/git
     emerge dev-util/gcovr
@@ -29,7 +29,7 @@ RUN /bin/bash <<"EOF"
       use_params=''
       case ${compiler_version%%.*} in
         17)
-          emerge =dev-lang/python-3.12.12
+          emerge dev-lang/python:3.12
           use_params=python_single_target_python3_12 ;;
       esac
       echo ">llvm-runtimes/openmp-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
@@ -37,12 +37,12 @@ RUN /bin/bash <<"EOF"
       echo ">llvm-runtimes/compiler-rt-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-runtimes/compiler-rt-sanitizers-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/llvm-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
-      if [[ $(uname -m) == x86_64 ]] ; then
-        echo ">llvm-core/llvmgold-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
-      fi
+      echo ">llvm-core/llvmgold-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/llvm-toolchain-symlinks-${compiler_version%%\.*}-r9999" >> /etc/portage/package.mask/llvm
       echo ">llvm-core/clang-common-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
-      echo ">llvm-core/clang-runtime-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-runtimes/clang-runtime-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-runtimes/libcxx-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
+      echo ">llvm-runtimes/libcxxabi-${compiler_version%%-r*}-r9999" >> /etc/portage/package.mask/llvm
       USE="libcxx $use_params" emerge =llvm-core/clang-${compiler_version}
       ln -s /usr/lib/llvm/${compiler_version%%.*}/bin/* /usr/local/bin/
     elif [[ ${compiler_kind} == gcc ]] ; then
