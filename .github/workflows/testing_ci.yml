@@ -33,20 +33,14 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
-            compiler-version: 15.2.1_p20260214
-            tags: [15.2.1, 15]
+            compiler-version: 15.3.0
+            tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20250801
+            compiler-version: 14.3.1_p20260604
             tags: [14.3.1, 14]
-          - kind: gcc
-            compiler-version: 13.4.1_p20260212
-            tags: [13.4.1, 13]
-          - kind: gcc
-            compiler-version: 12.5.0
-            tags: [12.5.0, 12]
-          - kind: gcc
-            compiler-version: 11.5.0
-            tags: [11.5.0, 11]
+          - kind: clang
+            compiler-version: 22.1.8
+            tags: [22.1.8, 22]
           - kind: clang
             compiler-version: 21.1.8
             tags: [21.1.8, 21]
@@ -113,28 +107,38 @@ jobs:
           path: /tmp/digest.txt
           retention-days: 1
 
-  # arm64 binpkgs are only available for GCC 14/15 and Clang 20/21.
-  # The remaining compilers are built from source in fromsource_ci.yml.
   build-arm64:
     runs-on: ubuntu-24.04-arm
     env:
-      BASE_IMAGE: gentoo/stage3:arm64-llvm-openrc
+      BASE_IMAGE: gentoo/stage3:arm64-openrc
     strategy:
       fail-fast: false
       matrix:
         compilers:
           - kind: gcc
-            compiler-version: 15.2.1_p20260214
-            tags: [15.2.1, 15]
+            compiler-version: 15.3.0
+            tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20250801
+            compiler-version: 14.3.1_p20260604
             tags: [14.3.1, 14]
+          - kind: clang
+            compiler-version: 22.1.8
+            tags: [22.1.8, 22]
           - kind: clang
             compiler-version: 21.1.8
             tags: [21.1.8, 21]
           - kind: clang
             compiler-version: 20.1.8
             tags: [20.1.8, 20]
+          - kind: clang
+            compiler-version: 19.1.7-r1
+            tags: [19.1.7, 19]
+          - kind: clang
+            compiler-version: 18.1.8-r7
+            tags: [18.1.8, 18]
+          - kind: clang
+            compiler-version: 17.0.6-r1
+            tags: [17.0.6, 17]
     name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (arm64)"
     steps:
       - name: Checkout repository
@@ -195,20 +199,14 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
-            compiler-version: 15.2.1_p20260214
-            tags: [15.2.1, 15]
+            compiler-version: 15.3.0
+            tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20250801
+            compiler-version: 14.3.1_p20260604
             tags: [14.3.1, 14]
-          - kind: gcc
-            compiler-version: 13.4.1_p20260212
-            tags: [13.4.1, 13]
-          - kind: gcc
-            compiler-version: 12.5.0
-            tags: [12.5.0, 12]
-          - kind: gcc
-            compiler-version: 11.5.0
-            tags: [11.5.0, 11]
+          - kind: clang
+            compiler-version: 22.1.8
+            tags: [22.1.8, 22]
           - kind: clang
             compiler-version: 21.1.8
             tags: [21.1.8, 21]

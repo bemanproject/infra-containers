@@ -14,23 +14,24 @@ This project builds the following images intended for use by CI for Beman librar
 
 - `ghcr.io/bemanproject/infra-containers-gcc`
   - `trunk` (rebuilt weekly)
-  - `latest`/`16`/`16.1.0`
-  - `15`/`15.2.1`
+  - `latest`/`16`/`16.2.0`
+  - `15`/`15.3.0`
   - `14`/`14.3.1`
   - `13`/`13.4.1`
   - `12`/`12.5.0`
   - `11`/`11.5.0`
 - `ghcr.io/bemanproject/infra-containers-clang`
   - `trunk` (rebuilt weekly)
-  - `latest`/`22`/`22.1.6`
+  - `latest`/`23`/`23.1.0`
+  - `22`/`22.1.8`
   - `21`/`21.1.8`
   - `20`/`20.1.8`
   - `19`/`19.1.7`
   - `18`/`18.1.8`
   - `17`/`17.0.6`
 
-Along with the compiler version specified in the tag, these images contain CMake 4.2.1 and
-recent versions of ninja, git, and jq.
+Along with the compiler version specified in the tag, these images contain CMake 4.3.4,
+vcpkg (at `VCPKG_ROOT`), and recent versions of ninja, git, gcovr, and jq.
 
 ## Implementation Details
 

@@ -35,17 +35,26 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 23.0.0_pre20260512
+            compiler-version: 24.0.0_pre20260725
             tags: [trunk]
           - kind: clang
-            compiler-version: 22.1.6
-            tags: [22.1.6, 22, latest]
+            compiler-version: 23.1.0
+            tags: [23.1.0, 23, latest]
           - kind: gcc
             compiler-version: 17.0.9999
             tags: [trunk]
           - kind: gcc
-            compiler-version: 16.1.0
-            tags: [16.1.0, 16, latest]
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
+          - kind: gcc
+            compiler-version: 13.4.1_p20260603
+            tags: [13.4.1, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
     name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (amd64)"
     steps:
       - name: Checkout repository
@@ -97,28 +106,25 @@ jobs:
           path: /tmp/digest.txt
           retention-days: 1
 
-  # arm64 binpkgs are not available for GCC 11/12/13 or Clang 17/18/19, so those
-  # are built from source here. Clang trunk is also built from source on arm64.
-  # Clang 17/18 and trunk arm64 are currently broken in Gentoo and omitted until fixed.
   build-arm64:
     runs-on: ubuntu-24.04-arm
     env:
-      BASE_IMAGE: gentoo/stage3:arm64-llvm-openrc
+      BASE_IMAGE: gentoo/stage3:arm64-openrc
     strategy:
       fail-fast: false
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 22.1.6
-            tags: [22.1.6, 22, latest]
+            compiler-version: 23.1.0
+            tags: [23.1.0, 23, latest]
           - kind: gcc
             compiler-version: 17.0.9999
             tags: [trunk]
           - kind: gcc
-            compiler-version: 16.1.0
-            tags: [16.1.0, 16, latest]
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
           - kind: gcc
-            compiler-version: 13.4.1_p20260212
+            compiler-version: 13.4.1_p20260603
             tags: [13.4.1, 13]
           - kind: gcc
             compiler-version: 12.5.0
@@ -126,9 +132,6 @@ jobs:
           - kind: gcc
             compiler-version: 11.5.0
             tags: [11.5.0, 11]
-          - kind: clang
-            compiler-version: 19.1.7-r1
-            tags: [19.1.7, 19]
     name: "${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }} (arm64)"
     steps:
       - name: Checkout repository
@@ -189,19 +192,19 @@ jobs:
       matrix:
         compilers:
           - kind: clang
-            compiler-version: 23.0.0_pre20260512
+            compiler-version: 24.0.0_pre20260725
             tags: [trunk]
           - kind: clang
-            compiler-version: 22.1.6
-            tags: [22.1.6, 22, latest]
+            compiler-version: 23.1.0
+            tags: [23.1.0, 23, latest]
           - kind: gcc
             compiler-version: 17.0.9999
             tags: [trunk]
           - kind: gcc
-            compiler-version: 16.1.0
-            tags: [16.1.0, 16, latest]
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
           - kind: gcc
-            compiler-version: 13.4.1_p20260212
+            compiler-version: 13.4.1_p20260603
             tags: [13.4.1, 13]
           - kind: gcc
             compiler-version: 12.5.0
@@ -209,15 +212,6 @@ jobs:
           - kind: gcc
             compiler-version: 11.5.0
             tags: [11.5.0, 11]
-          - kind: clang
-            compiler-version: 19.1.7-r1
-            tags: [19.1.7, 19]
-          - kind: clang
-            compiler-version: 18.1.8-r7
-            tags: [18.1.8, 18]
-          - kind: clang
-            compiler-version: 17.0.6-r1
-            tags: [17.0.6, 17]
     name: "merge-${{ matrix.compilers.kind }}-${{ matrix.compilers.compiler-version }}"
     steps:
       - name: Log in to the Container registry
@@ -255,8 +249,6 @@ jobs:
           if [ -f /tmp/digests/amd64/digest.txt ]; then
             digests+=" ${image_name}@$(cat /tmp/digests/amd64/digest.txt)"
           else
-            # GCC 11/12/13 and Clang 17/18/19 have no amd64 fromsource build;
-            # fetch the amd64 digest that testing_ci.yml already published.
             amd64_digest=$(docker manifest inspect "${image_name}:${first_tag}" 2>/dev/null \
               | jq -r '.manifests[]? | select(.platform.architecture == "amd64") | .digest' || true)
             [ -n "${amd64_digest}" ] && digests+=" ${image_name}@${amd64_digest}"
