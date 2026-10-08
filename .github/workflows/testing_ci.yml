@@ -33,11 +33,20 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
+          - kind: gcc
             compiler-version: 15.3.0
             tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20260604
-            tags: [14.3.1, 14]
+            compiler-version: 13.5.0
+            tags: [13.5.0, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
           - kind: clang
             compiler-version: 22.1.8
             tags: [22.1.8, 22]
@@ -116,11 +125,20 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
+          - kind: gcc
             compiler-version: 15.3.0
             tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20260604
-            tags: [14.3.1, 14]
+            compiler-version: 13.5.0
+            tags: [13.5.0, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
           - kind: clang
             compiler-version: 22.1.8
             tags: [22.1.8, 22]
@@ -199,11 +217,20 @@ jobs:
       matrix:
         compilers:
           - kind: gcc
+            compiler-version: 16.2.0
+            tags: [16.2.0, 16, latest]
+          - kind: gcc
             compiler-version: 15.3.0
             tags: [15.3.0, 15]
           - kind: gcc
-            compiler-version: 14.3.1_p20260604
-            tags: [14.3.1, 14]
+            compiler-version: 13.5.0
+            tags: [13.5.0, 13]
+          - kind: gcc
+            compiler-version: 12.5.0
+            tags: [12.5.0, 12]
+          - kind: gcc
+            compiler-version: 11.5.0
+            tags: [11.5.0, 11]
           - kind: clang
             compiler-version: 22.1.8
             tags: [22.1.8, 22]
@@ -249,15 +276,30 @@ jobs:
           image_name="${{ env.REGISTRY }}/${{ env.DEPLOY_NAME_PREFIX }}-${{ matrix.compilers.kind }}"
 
           tag_args=""
+          first_tag=""
           for tag in ${{ join(matrix.compilers.tags, ' ') }} ; do
             tag_args+=" -t ${image_name}:${tag}"
+            [ -z "${first_tag}" ] && first_tag="${tag}"
           done
 
+          # Use this run's image for each arch that built. For an arch whose
+          # build failed or was skipped, carry forward its image from the
+          # currently published tag so it isn't dropped from the index.
+          built=""
           digests=""
-          [ -f /tmp/digests/amd64/digest.txt ] && digests+=" ${image_name}@$(cat /tmp/digests/amd64/digest.txt)"
-          [ -f /tmp/digests/arm64/digest.txt ] && digests+=" ${image_name}@$(cat /tmp/digests/arm64/digest.txt)"
+          for arch in amd64 arm64 ; do
+            if [ -f /tmp/digests/${arch}/digest.txt ]; then
+              digests+=" ${image_name}@$(cat /tmp/digests/${arch}/digest.txt)"
+              built+=" ${arch}"
+            else
+              old_digest=$(docker manifest inspect "${image_name}:${first_tag}" 2>/dev/null \
+                | jq -r --arg arch "${arch}" '.manifests[]? | select(.platform.architecture == $arch) | .digest' || true)
+              [ -n "${old_digest}" ] && digests+=" ${image_name}@${old_digest}"
+            fi
+          done
 
-          if [ -z "${digests}" ]; then
+          # Nothing new to publish; leave the existing tags untouched.
+          if [ -z "${built}" ]; then
             echo "No successful builds for this compiler, skipping."
             exit 0
           fi
